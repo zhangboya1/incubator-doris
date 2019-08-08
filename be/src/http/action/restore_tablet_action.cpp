@@ -129,10 +129,6 @@ Status RestoreTabletAction::_reload_tablet(
         }
         return Status("command executor load header failed");
     } else {
-        LOG(INFO) << "load header success. status: " << res
-                  << ", signature: " << tablet_id;
-        // remove tablet data path in trash
-        // path: /root_path/trash/time_label, because only one tablet path under time_label
         std::string trash_tablet_schema_hash_dir = "";
 
         {
@@ -140,14 +136,9 @@ Status RestoreTabletAction::_reload_tablet(
             std::lock_guard<std::mutex> l(_tablet_restore_lock);
             trash_tablet_schema_hash_dir = _tablet_path_map[key];
         }
-
-        boost::filesystem::path trash_tablet_schema_hash_path(trash_tablet_schema_hash_dir);
-        boost::filesystem::path time_label_path = trash_tablet_schema_hash_path.parent_path().parent_path();
-        LOG(INFO) << "remove time label path:" << time_label_path.string();
-        Status s = FileUtils::remove_all(time_label_path.string());
-        if (!s.ok()) {
-            LOG(WARNING) << "remove time label path:" << time_label_path.string() << " failed";
-        }
+        LOG(INFO) << "load header success. status: " << res
+                  << ", signature: " << tablet_id << ", from trash path:" << trash_tablet_schema_hash_dir
+                  << " to shard path:" << shard_path;
         return Status::OK;
     }
 } 
@@ -185,31 +176,47 @@ Status RestoreTabletAction::_restore(const std::string& key, int64_t tablet_id, 
         return s;
     }
     // create hard link for files in /root_path/data/shard/tablet_id/schema_hash
-    std::vector<std::string> files;
-    s = FileUtils::scan_dir(latest_tablet_path, &files);
+    s = _create_hard_link_recursive(latest_tablet_path, restore_schema_hash_path);
     if (!s.ok()) {
-        LOG(WARNING) << "scan dir failed:" << latest_tablet_path;
-        return s;
-    }
-    for (auto& file : files) {
-        std::string from = latest_tablet_path + "/" + file;
-        std::string to = restore_schema_hash_path + "/" + file;
-        int link_ret = link(from.c_str(), to.c_str());
-        if (link_ret != 0) {
-            LOG(WARNING) << "link from:" << from
-                    << " to:" << to  << " failed, link ret:" << link_ret;
-            std::string restore_tablet_path = store->get_tablet_path_from_header(&header);
-            LOG(WARNING) << "remove tablet_path:" << restore_tablet_path;
-            Status s = FileUtils::remove_all(restore_tablet_path);
-            if (!s.ok()) {
-                LOG(WARNING) << "remove invalid tablet path:" << restore_tablet_path << " failed";
-            }
-            return Status("create link path failed");
+        std::string restore_tablet_path = store->get_tablet_path_from_header(&header);
+        LOG(WARNING) << "remove tablet_path:" << restore_tablet_path;
+        s = FileUtils::remove_all(restore_tablet_path);
+        if (!s.ok()) {
+            LOG(WARNING) << "remove invalid tablet path:" << restore_tablet_path << " failed";
         }
     }
     std::string restore_shard_path = store->get_shard_path_from_header(std::to_string(header.shard()));
     Status status = _reload_tablet(key, restore_shard_path, tablet_id, schema_hash);
     return status;
+}
+
+Status RestoreTabletAction::_create_hard_link_recursive(const std::string& src, const std::string& dst) {
+    std::vector<std::string> files;
+    Status s = FileUtils::scan_dir(src, &files);
+    if (!s.ok()) {
+        LOG(WARNING) << "scan dir failed:" << src;
+        return s;
+    }
+    for (auto& file : files) {
+        std::string from = src + "/" + file;
+        std::string to = dst + "/" + file;
+        if (FileUtils::is_dir(from)) {
+            s = FileUtils::create_dir(to);
+            if (!s.ok()) {
+                LOG(WARNING) << "create path failed:" << to;
+                return s;
+            }
+            _create_hard_link_recursive(from, to);
+        } else {
+            int link_ret = link(from.c_str(), to.c_str());
+            if (link_ret != 0) {
+                LOG(WARNING) << "link from:" << from
+                             << " to:" << to << " failed, link ret:" << link_ret;
+                return Status("create link path failed");
+            }
+        }
+    }
+    return Status::OK;
 }
 
 bool RestoreTabletAction::_get_latest_tablet_path_from_trash(
