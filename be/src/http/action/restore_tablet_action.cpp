@@ -121,7 +121,7 @@ Status RestoreTabletAction::_reload_tablet(
                      << ", signature: " << tablet_id;
         // remove tablet data path in data path
         // path: /roo_path/data/shard/tablet_id
-        std::string tablet_path = shard_path + "/" + std::to_string(tablet_id);
+        std::string tablet_path = shard_path + "/" + std::to_string(tablet_id) + "/" + std::to_string(schema_hash);
         LOG(INFO) << "remove tablet_path:" << tablet_path;
         Status s = FileUtils::remove_all(tablet_path);
         if (!s.ok()) {
@@ -178,11 +178,9 @@ Status RestoreTabletAction::_restore(const std::string& key, int64_t tablet_id, 
     // create hard link for files in /root_path/data/shard/tablet_id/schema_hash
     s = _create_hard_link_recursive(latest_tablet_path, restore_schema_hash_path);
     if (!s.ok()) {
-        std::string restore_tablet_path = store->get_tablet_path_from_header(&header);
-        LOG(WARNING) << "remove tablet_path:" << restore_tablet_path;
-        s = FileUtils::remove_all(restore_tablet_path);
+        s = FileUtils::remove_all(restore_schema_hash_path);
         if (!s.ok()) {
-            LOG(WARNING) << "remove invalid tablet path:" << restore_tablet_path << " failed";
+            LOG(WARNING) << "remove invalid tablet path:" << restore_schema_hash_path << " failed";
         }
     }
     std::string restore_shard_path = store->get_shard_path_from_header(std::to_string(header.shard()));
@@ -206,7 +204,10 @@ Status RestoreTabletAction::_create_hard_link_recursive(const std::string& src, 
                 LOG(WARNING) << "create path failed:" << to;
                 return s;
             }
-            _create_hard_link_recursive(from, to);
+            s = _create_hard_link_recursive(from, to);
+            if (!s.ok()) {
+                return s;
+            }
         } else {
             int link_ret = link(from.c_str(), to.c_str());
             if (link_ret != 0) {
