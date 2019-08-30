@@ -25,7 +25,7 @@
 # contains the build version based on the git hash or svn revision.
 ##############################################################
 
-build_version="trunk"
+build_version="DORIS-0.11.6-alpha"
 
 unset LANG
 unset LC_CTYPE
