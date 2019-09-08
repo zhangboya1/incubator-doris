@@ -1317,7 +1317,7 @@ OLAPStatus SchemaChangeHandler::_do_process_alter_tablet_v2(const TAlterTabletRe
                 rowsets_to_delete.push_back(rowset);
             }
         }
-        new_tablet->modify_rowsets(std::vector<RowsetSharedPtr>(), rowsets_to_delete);
+        new_tablet->delete_rowsets(rowsets_to_delete);
         // inherit cumulative_layer_point from base_tablet
         // check if new_tablet.ce_point > base_tablet.ce_point?
         new_tablet->set_cumulative_layer_point(-1);

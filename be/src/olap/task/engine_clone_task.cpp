@@ -754,14 +754,14 @@ OLAPStatus EngineCloneTask::_clone_incremental_data(Tablet* tablet, const Tablet
 
     // check missing versions exist in clone src
     for (Version version : missed_versions) {
-        RowsetMetaSharedPtr inc_rs_meta = cloned_tablet_meta.acquire_inc_rs_meta_by_version(version);
-        if (inc_rs_meta == nullptr) {
+        RowsetMetaSharedPtr rs_meta = cloned_tablet_meta.acquire_rs_meta_by_version(version);
+        if (rs_meta == nullptr) {
             LOG(WARNING) << "missed version is not found in cloned tablet meta."
                          << ", missed_version=" << version.first << "-" << version.second;
             return OLAP_ERR_VERSION_NOT_EXIST;
         }
 
-        rowsets_to_clone.push_back(inc_rs_meta);
+        rowsets_to_clone.push_back(rs_meta);
     }
 
     // clone_data to tablet

@@ -1387,4 +1387,13 @@ void TabletManager::_remove_tablet_from_partition(const Tablet& tablet) {
     }
 }
 
-} // end namespace doris
+void TabletManager::capture_unused_rowset_in_tablet() {
+    ReadLock rdlock(&_tablet_map_lock);
+    for (auto& item : _tablet_map) {
+        for (auto& tablet : item.second.table_arr) {
+            tablet->capture_unused_rowsets();
+        }
+    }
+} // check_tablet_id_exist
+
+} // doris

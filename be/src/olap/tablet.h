@@ -111,8 +111,7 @@ public:
 
     // operation in rowsets
     OLAPStatus add_rowset(RowsetSharedPtr rowset, bool need_persist = true);
-    OLAPStatus modify_rowsets(const vector<RowsetSharedPtr>& to_add,
-                              const vector<RowsetSharedPtr>& to_delete);
+    OLAPStatus add_rowsets(const vector<RowsetSharedPtr>& to_add);
 
     // _rs_version_map and _inc_rs_version_map should be protected by _meta_lock
     // The caller must call hold _meta_lock when call this two function.
@@ -120,9 +119,6 @@ public:
     const RowsetSharedPtr get_inc_rowset_by_version(const Version& version) const;
 
     const RowsetSharedPtr rowset_with_max_version() const;
-
-    OLAPStatus add_inc_rowset(const RowsetSharedPtr& rowset);
-    void delete_expired_inc_rowsets();
 
     OLAPStatus capture_consistent_versions(const Version& spec_version,
                                            vector<Version>* version_path) const;
@@ -188,6 +184,7 @@ public:
     // This function to find max continous version from the beginning.
     // For example: If there are 1, 2, 3, 5, 6, 7 versions belongs tablet, then 3 is target.
     OLAPStatus max_continuous_version_from_begining(Version* version, VersionHash* v_hash);
+    OLAPStatus max_continuous_version_from_begining_unlock(Version* version, VersionHash* v_hash);
 
     // operation for query
     OLAPStatus split_range(
@@ -242,6 +239,7 @@ public:
     bool rowset_meta_is_useful(RowsetMetaSharedPtr rowset_meta);
 
     void build_tablet_report_info(TTabletInfo* tablet_info);
+    OLAPStatus capture_unused_rowsets();
 
     void generate_tablet_meta_copy(TabletMetaSharedPtr new_tablet_meta);
 
@@ -293,7 +291,6 @@ private:
     // So at a certain time point (such as just after a base compaction), some rowsets in
     // _inc_rs_version_map may do not exist in _rs_version_map.
     std::unordered_map<Version, RowsetSharedPtr, HashOfVersion> _rs_version_map;
-    std::unordered_map<Version, RowsetSharedPtr, HashOfVersion> _inc_rs_version_map;
 
     // if this tablet is broken, set to true. default is false
     std::atomic<bool> _is_bad;
