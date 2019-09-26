@@ -169,7 +169,6 @@ public:
     OLAPStatus delete_rs_metas(const vector<RowsetMetaSharedPtr>& to_delete);
     RowsetMetaSharedPtr acquire_rs_meta_by_version(const Version& version) const;
     OLAPStatus delete_rs_meta_by_version(const Version& version, vector<RowsetMetaSharedPtr>* deleted_rs_metas);
-    OLAPStatus revise_rs_metas(const std::vector<RowsetMetaSharedPtr>& rs_metas);
 
     void add_delete_predicate(const DeletePredicatePB& delete_predicate, int64_t version);
     void remove_delete_predicate_by_version(const Version& version);

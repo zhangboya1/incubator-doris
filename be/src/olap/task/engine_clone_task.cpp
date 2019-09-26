@@ -742,9 +742,9 @@ OLAPStatus EngineCloneTask::_clone_incremental_data(Tablet* tablet, const Tablet
               << ", committed_version=" << committed_version;
 
     vector<Version> missed_versions;
-    tablet->calc_missed_versions_unlocked(committed_version, &missed_versions);
-
-    vector<Version> versions_to_delete;
+    tablet->calc_missed_versions_unlock(committed_version, &missed_versions);
+    
+    //vector<Version> versions_to_delete;
     vector<RowsetMetaSharedPtr> rowsets_to_clone;
 
     VLOG(3) << "get missed versions again when finish incremental clone. "
@@ -765,7 +765,7 @@ OLAPStatus EngineCloneTask::_clone_incremental_data(Tablet* tablet, const Tablet
     }
 
     // clone_data to tablet
-    OLAPStatus clone_res = tablet->revise_tablet_meta(rowsets_to_clone, versions_to_delete);
+    OLAPStatus clone_res = tablet->add_rowsets(rowsets_to_clone);
     LOG(INFO) << "finish to incremental clone. [tablet=" << tablet->full_name() << " res=" << clone_res << "]";
     return clone_res;
 }
@@ -842,7 +842,7 @@ OLAPStatus EngineCloneTask::_clone_full_data(Tablet* tablet, TabletMeta* cloned_
     // 2. local tablet has error in push
     // 3. local tablet cloned rowset from other nodes
     // 4. if cleared alter task info, then push will not write to new tablet, the report info is error
-    OLAPStatus clone_res = tablet->revise_tablet_meta(rowsets_to_clone, versions_to_delete);
+    OLAPStatus clone_res = tablet->add_rowsets(rowsets_to_clone);
     LOG(INFO) << "finish to full clone. tablet=" << tablet->full_name() << ", res=" << clone_res;
     // in previous step, copy all files from CLONE_DIR to tablet dir
     // but some rowset is useless, so that remove them here

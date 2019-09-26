@@ -70,10 +70,7 @@ public:
     // Property encapsulated in TabletMeta
     inline const TabletMetaSharedPtr tablet_meta();
     OLAPStatus save_meta();
-    // Used in clone task, to update local meta when finishing a clone job
-    OLAPStatus revise_tablet_meta(const std::vector<RowsetMetaSharedPtr>& rowsets_to_clone,
-                                  const std::vector<Version>& versions_to_delete);
-
+    OLAPStatus merge_tablet_meta(const TabletMeta& hdr, int to_version);
 
     inline TabletUid tablet_uid() const;
     inline int64_t table_id() const;

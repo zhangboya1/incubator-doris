@@ -129,74 +129,12 @@ OLAPStatus Tablet::save_meta() {
     return res;
 }
 
-OLAPStatus Tablet::revise_tablet_meta(
-        const vector<RowsetMetaSharedPtr>& rowsets_to_clone,
-        const vector<Version>& versions_to_delete) {
-    LOG(INFO) << "begin to clone data to tablet. tablet=" << full_name()
-              << ", rowsets_to_clone=" << rowsets_to_clone.size()
-              << ", versions_to_delete_size=" << versions_to_delete.size();
-    OLAPStatus res = OLAP_SUCCESS;
-    do {
-        // load new local tablet_meta to operate on
-        TabletMetaSharedPtr new_tablet_meta(new (nothrow) TabletMeta());
-        generate_tablet_meta_copy(new_tablet_meta);
+OLAPStatus Tablet::register_tablet_into_dir() {
+    return _data_dir->register_tablet(this);
+}
 
-        // delete versions from new local tablet_meta
-        for (const Version& version : versions_to_delete) {
-            new_tablet_meta->delete_rs_meta_by_version(version, nullptr);
-            if (new_tablet_meta->version_for_delete_predicate(version)) {
-                new_tablet_meta->remove_delete_predicate_by_version(version);
-            }
-            LOG(INFO) << "delete version from new local tablet_meta when clone. [table="
-                    << full_name() << ", version=" << version << "]";
-        }
-
-        if (res != OLAP_SUCCESS) {
-            break;
-        }
-
-        for (auto& rs_meta : rowsets_to_clone) {
-            new_tablet_meta->add_rs_meta(rs_meta);
-        }
-
-        if (res != OLAP_SUCCESS) {
-            break;
-        }
-
-       VLOG(3) << "load rowsets successfully when clone. tablet=" << full_name()
-                << ", added rowset size=" << rowsets_to_clone.size();
-        // save and reload tablet_meta
-        res = new_tablet_meta->save_meta(_data_dir);
-        if (res != OLAP_SUCCESS) {
-            LOG(WARNING) << "failed to save new local tablet_meta when clone. res:" << res;
-            break;
-        }
-        _tablet_meta = new_tablet_meta;
-    } while (0);
-
-    for (auto& version : versions_to_delete) {
-        auto it = _rs_version_map.find(version);
-        StorageEngine::instance()->add_unused_rowset(it->second);
-        _rs_version_map.erase(it);
-    }
-
-    for (auto& rs_meta : rowsets_to_clone) {
-        Version version = { rs_meta->start_version(), rs_meta->end_version() };
-        RowsetSharedPtr rowset;
-        res = RowsetFactory::create_rowset(&_schema, _tablet_path, rs_meta, &rowset);
-        if (res != OLAP_SUCCESS) {
-            LOG(WARNING) << "fail to init rowset. version=" << version.first << "-" << version.second;
-            return res;
-        }
-        _rs_version_map[version] = std::move(rowset);
-    }
-
-    _rs_graph.reconstruct_rowset_graph(_tablet_meta->all_rs_metas());
-
-    LOG(INFO) << "finish to clone data to tablet. res=" << res << ", "
-              << "table=" << full_name() << ", "
-              << "rowsets_to_clone=" << rowsets_to_clone.size();
-    return res;
+OLAPStatus Tablet::deregister_tablet_from_dir() {
+    return _data_dir->deregister_tablet(this);
 }
 
 OLAPStatus Tablet::add_rowset(RowsetSharedPtr rowset, bool need_persist) {
@@ -521,7 +459,6 @@ void Tablet::compute_version_hash_from_rowsets(
     *version_hash = v_hash;
 }
 
-
 void Tablet::calc_missed_versions(int64_t spec_version, vector<Version>* missed_versions) {
     ReadLock rdlock(&_meta_lock);
     calc_missed_versions_unlocked(spec_version, missed_versions);
@@ -612,6 +549,22 @@ OLAPStatus Tablet::calculate_cumulative_point() {
     }
 
     std::list<RowsetMetaSharedPtr> existing_rss;
+    std::vector<Version> version_path;
+    Version max_version;
+    RETURN_NOT_OK(_rs_graph.capture_consistent_versions(max_version, version_path));
+    version_path.sort([](const Version& a, const Version& b) {
+        return a.first < b.first;
+    });
+
+    for (const Version& version : version_path) {
+        if (version.first == version.second) {
+            _cumulative_point = version.first;
+            break;
+        }
+    }
+    
+    /*
+    std::list<Version> existing_versions;
     for (auto& rs : _tablet_meta->all_rs_metas()) {
         existing_rss.emplace_back(rs);
     }
@@ -645,6 +598,7 @@ OLAPStatus Tablet::calculate_cumulative_point() {
         prev_version = rs->version().second;
         _cumulative_point = prev_version + 1;
     }
+    */
     return OLAP_SUCCESS;
 }
 
@@ -822,6 +776,17 @@ void Tablet::pick_candicate_rowsets_to_cumulative_compaction(int64_t skip_window
 }
 
 void Tablet::pick_candicate_rowsets_to_base_compaction(vector<RowsetSharedPtr>* candidate_rowsets) {
+    ReadLock rdlock(&_meta_lock);
+    Version version(0, _cumulative_point - 1);
+    std::vector<Version> version_path;
+    RETURN_NOT_OK(_rs_graph.capture_consistent_versions(version, &version_path));
+    for (auto& version : version_path) {
+        auto it = _rs_version_map.find(version);
+        candidate_rowsets->push_back(it->second);
+    }
+}
+
+void Tablet::pick_candicate_rowsets_to_base_compaction(std::vector<RowsetSharedPtr>* candidate_rowsets) {
     ReadLock rdlock(&_meta_lock);
     for (auto& it : _rs_version_map) {
         if (it.first.first < _cumulative_point) {

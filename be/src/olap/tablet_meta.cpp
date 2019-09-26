@@ -520,14 +520,6 @@ OLAPStatus TabletMeta::delete_rs_metas(const vector<RowsetMetaSharedPtr>& to_del
     return OLAP_SUCCESS;
 }
 
-void TabletMeta::revise_rs_metas(std::vector<RowsetMetaSharedPtr>&& rs_metas) {
-    WriteLock wrlock(&_meta_lock);
-    // delete alter task
-    _alter_task.reset();
-
-    _rs_metas = std::move(rs_metas);
-}
-
 RowsetMetaSharedPtr TabletMeta::acquire_rs_meta_by_version(const Version& version) const {
     RowsetMetaSharedPtr rs_meta = nullptr;
     for (int i = 0; i < _rs_metas.size(); ++i) {
