@@ -345,7 +345,7 @@ OLAPStatus SnapshotManager::_create_snapshot_files(
                 if (rowset != nullptr) {
                     consistent_rowsets.push_back(rowset);
                 } else {
-                    LOG(WARNING) << "failed to find missed version when snapshot. "
+                    LOG(WARNING) << "failed to find missed version when snapshot."
                                  << " tablet=" << request.tablet_id
                                  << " schema_hash=" << request.schema_hash
                                  << " version=" << version.first << "-" << version.second;

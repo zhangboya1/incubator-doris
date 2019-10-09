@@ -540,6 +540,7 @@ OLAPStatus Tablet::max_continuous_version_from_begining_unlock(Version* version,
     *v_hash = max_continuous_version_hash;
     return OLAP_SUCCESS;
 }
+
 OLAPStatus Tablet::calculate_cumulative_point() {
     WriteLock wrlock(&_meta_lock);
     if (_cumulative_point != -1) {
@@ -550,11 +551,11 @@ OLAPStatus Tablet::calculate_cumulative_point() {
 
     std::list<RowsetMetaSharedPtr> existing_rss;
     std::vector<Version> version_path;
-    Version max_version;
-    RETURN_NOT_OK(_rs_graph.capture_consistent_versions(max_version, version_path));
-    version_path.sort([](const Version& a, const Version& b) {
-        return a.first < b.first;
-    });
+    Version maximum_version = max_version();
+    RETURN_NOT_OK(_rs_graph.capture_consistent_versions(maximum_version, &version_path));
+    std::sort(version_path.begin(), version_path.end(),
+              [](const Version& a, const Version& b) {return a.first < b.first;}
+             );
 
     for (const Version& version : version_path) {
         if (version.first == version.second) {
@@ -563,42 +564,6 @@ OLAPStatus Tablet::calculate_cumulative_point() {
         }
     }
     
-    /*
-    std::list<Version> existing_versions;
-    for (auto& rs : _tablet_meta->all_rs_metas()) {
-        existing_rss.emplace_back(rs);
-    }
-
-    // sort the existing rowsets by version in ascending order
-    existing_rss.sort([](const RowsetMetaSharedPtr& a, const RowsetMetaSharedPtr& b) {
-        // simple because 2 versions are certainly not overlapping
-        return a->version().first < b->version().first;
-    });
-
-    int64_t prev_version = -1;
-    for (const RowsetMetaSharedPtr& rs : existing_rss) {
-        if (rs->version().first > prev_version + 1) {
-            // There is a hole, do not continue
-            break;
-        }
-        // break the loop if segments in this rowset is overlapping, or overlap flag is NOT NONOVERLAPPING
-        // even if is_segments_overlapping() return false, the overlap flag may be OVERLAPPING.
-        // eg: tablet with versions(rowsets):
-        //      [0-1] NONOVERLAPPING
-        //      [2-2] OVERLAPPING
-        // [2-2]'s overlap flag is OVERLAPPING because it is newly written by the delta writer.
-        // but is has only one segment, so is_segments_overlapping() will return false.
-        // but we should not continue increasing the cumulative point, because we need
-        // the compaction process to change the overlap flag from OVERLAPPING to NONOVERLAPPING.
-        if (rs->is_segments_overlapping() || rs->segments_overlap() != NONOVERLAPPING) {
-            _cumulative_point = rs->version().first;
-            break;
-        }
-
-        prev_version = rs->version().second;
-        _cumulative_point = prev_version + 1;
-    }
-    */
     return OLAP_SUCCESS;
 }
 
@@ -768,30 +733,24 @@ void Tablet::pick_candicate_rowsets_to_cumulative_compaction(int64_t skip_window
                                                              std::vector<RowsetSharedPtr>* candidate_rowsets) {
     int64_t now = UnixSeconds();
     ReadLock rdlock(&_meta_lock);
-    for (auto& it : _rs_version_map) {
-        if (it.first.first >= _cumulative_point && (it.second->creation_time() + skip_window_sec < now)) {
-            candidate_rowsets->push_back(it.second);
-        }
-    }
-}
-
-void Tablet::pick_candicate_rowsets_to_base_compaction(vector<RowsetSharedPtr>* candidate_rowsets) {
-    ReadLock rdlock(&_meta_lock);
-    Version version(0, _cumulative_point - 1);
     std::vector<Version> version_path;
-    RETURN_NOT_OK(_rs_graph.capture_consistent_versions(version, &version_path));
+    _rs_graph.capture_consistent_versions(spec_version, &version_path);
     for (auto& version : version_path) {
         auto it = _rs_version_map.find(version);
-        candidate_rowsets->push_back(it->second);
+        if (it->creation_time() + skip_window_sec < now) {
+            candidate_rowsets->push_back(it->second);
+        }
     }
 }
 
 void Tablet::pick_candicate_rowsets_to_base_compaction(std::vector<RowsetSharedPtr>* candidate_rowsets) {
     ReadLock rdlock(&_meta_lock);
-    for (auto& it : _rs_version_map) {
-        if (it.first.first < _cumulative_point) {
-            candidate_rowsets->push_back(it.second);
-        }
+    Version spec_version(0, _cumulative_point - 1);
+    std::vector<Version> version_path;
+    _rs_graph.capture_consistent_versions(spec_version, &version_path);
+    for (auto& version : version_path) {
+        auto it = _rs_version_map.find(version);
+        candidate_rowsets->push_back(it->second);
     }
 }
 
