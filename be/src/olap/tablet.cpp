@@ -161,6 +161,7 @@ OLAPStatus Tablet::add_rowset(RowsetSharedPtr rowset, bool need_persist) {
             LOG(FATAL) << "failed to save rowset to local meta store" << rowset->rowset_id();
         }
     }
+    RETURN_NOT_OK(save_meta());
     ++_newly_created_rowset_num;
     return OLAP_SUCCESS;
 }
@@ -915,14 +916,6 @@ bool Tablet::rowset_meta_is_useful(RowsetMetaSharedPtr rowset_meta) {
             find_version = true;
         }
     }
-    for (auto& inc_version_rowset : _inc_rs_version_map) {
-        if (inc_version_rowset.second->rowset_id() == rowset_meta->rowset_id()) {
-            find_rowset_id = true;
-        }
-        if (inc_version_rowset.second->contains_version(rowset_meta->version())) {
-            find_version = true;
-        }
-    }
     if (find_rowset_id || !find_version) {
         return true;
     } else {
@@ -933,11 +926,6 @@ bool Tablet::rowset_meta_is_useful(RowsetMetaSharedPtr rowset_meta) {
 bool Tablet::_contains_rowset(const RowsetId rowset_id) {
     for (auto& version_rowset : _rs_version_map) {
         if (version_rowset.second->rowset_id() == rowset_id) {
-            return true;
-        }
-    }
-    for (auto& inc_version_rowset : _inc_rs_version_map) {
-        if (inc_version_rowset.second->rowset_id() == rowset_id) {
             return true;
         }
     }
