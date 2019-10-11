@@ -141,10 +141,7 @@ OLAPStatus Compaction::construct_input_rowset_readers() {
 }
 
 OLAPStatus Compaction::add_rowsets() {
-    std::vector<RowsetSharedPtr> output_rowsets;
-    output_rowsets.push_back(_output_rowset);
-    
-    OLAPStatus res = _tablet->add_rowsets(output_rowsets);
+    OLAPStatus res = _tablet->add_rowset(_output_rowset);
     if (res != OLAP_SUCCESS) {
         LOG(FATAL) << "fail to add rowsets. res" << res
                    << ", tablet=" << _tablet->full_name()
