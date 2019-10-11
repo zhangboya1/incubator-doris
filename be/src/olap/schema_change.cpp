@@ -1296,41 +1296,8 @@ OLAPStatus SchemaChangeHandler::_do_process_alter_tablet_v2(const TAlterTabletRe
             break;
         }
 
-        // should check the max_version >= request.alter_version, if not the convert is useless
-        RowsetSharedPtr max_rowset = base_tablet->rowset_with_max_version();
-        if (max_rowset == nullptr || max_rowset->end_version() < request.alter_version) {
-            LOG(WARNING) << "base tablet's max version=" << (max_rowset == nullptr ? 0 : max_rowset->end_version())
-                         << " is less than request version=" << request.alter_version;
-            res = OLAP_ERR_VERSION_NOT_EXIST;
-            break;
-        }
-        // before calculating version_to_be_changed,
-        // remove all data from new tablet, prevent to rewrite data(those double pushed when wait)
-        LOG(INFO) << "begin to remove all data from new tablet to prevent rewrite."
-                  << " new_tablet=" << new_tablet->full_name();
-        vector<RowsetSharedPtr> rowsets_to_delete;
-        vector<Version> new_tablet_versions;
-        new_tablet->list_versions(&new_tablet_versions);
-        for (auto& version : new_tablet_versions) {
-            if (version.second <= max_rowset->end_version()) {
-                RowsetSharedPtr rowset = new_tablet->get_rowset_by_version(version);
-                rowsets_to_delete.push_back(rowset);
-            }
-        }
-        new_tablet->delete_rowsets(rowsets_to_delete);
-        // inherit cumulative_layer_point from base_tablet
-        // check if new_tablet.ce_point > base_tablet.ce_point?
+        // set cumulative_point to minus one
         new_tablet->set_cumulative_layer_point(-1);
-        // save tablet meta
-        res = new_tablet->save_meta();
-        if (res != OLAP_SUCCESS) {
-            LOG(FATAL) << "fail to save tablet meta after remove rowset from new tablet"
-                        << new_tablet->full_name();
-        }
-        for (auto& rowset : rowsets_to_delete) {
-            // do not call rowset.remove directly, using gc thread to delete it
-            StorageEngine::instance()->add_unused_rowset(rowset);
-        }
 
         // init one delete handler
         int32_t end_version = -1;
@@ -1678,6 +1645,7 @@ OLAPStatus SchemaChangeHandler::_convert_historical_rowsets(const SchemaChangePa
     bool sc_directly = false;
     SchemaChange* sc_procedure = nullptr;
 
+    std::vector<RowsetSharedPtr> rowsets_converted;
     // a. 解析Alter请求，转换成内部的表示形式
     OLAPStatus res = _parse_request(sc_params.base_tablet, sc_params.new_tablet,
                                     &rb_changer, &sc_sorting, &sc_directly);
@@ -1762,33 +1730,24 @@ OLAPStatus SchemaChangeHandler::_convert_historical_rowsets(const SchemaChangePa
             sc_params.new_tablet->release_push_lock();
             goto PROCESS_ALTER_EXIT;
         }
-        res = sc_params.new_tablet->add_rowset(new_rowset, false);
-        if (res == OLAP_ERR_PUSH_VERSION_ALREADY_EXIST) {
-            LOG(WARNING) << "version already exist, version revert occured. "
-                         << "tablet=" << sc_params.new_tablet->full_name()
-                         << ", version='" << rs_reader->version().first
-                         << "-" << rs_reader->version().second;
-            StorageEngine::instance()->add_unused_rowset(new_rowset);
-            res = OLAP_SUCCESS;
-        } else if (res != OLAP_SUCCESS) {
-            LOG(WARNING) << "failed to register new version. "
-                         << " tablet=" << sc_params.new_tablet->full_name()
-                         << ", version=" << rs_reader->version().first
-                         << "-" << rs_reader->version().second;
-            StorageEngine::instance()->add_unused_rowset(new_rowset);
-            sc_params.new_tablet->release_push_lock();
-            goto PROCESS_ALTER_EXIT;
-        } else {
-            VLOG(3) << "register new version. tablet=" << sc_params.new_tablet->full_name()
-                    << ", version=" << rs_reader->version().first
-                    << "-" << rs_reader->version().second;
-        }
+
+        rowsets_converted.push_back(new_rowset); 
         sc_params.new_tablet->release_push_lock();
 
         VLOG(10) << "succeed to convert a history version."
                  << " version=" << rs_reader->version().first
                  << "-" << rs_reader->version().second;
     }
+
+    res = sc_params.new_tablet->add_rowsets(rowsets_converted);
+    if (res != OLAP_SUCCESS) {
+        LOG(INFO) << "add rowsets failed because of shortest-path inexistence."
+                  << " base_tablet=" << sc_params.base_tablet->full_name()
+                  << ", new_tablet=" << sc_params.new_tablet->full_name();
+        SAFE_DELETE(sc_procedure);
+        return res;
+    }
+
     // XXX: 此时应该不取消SchemaChange状态，因为新Delta还要转换成新旧Schema的版本
 PROCESS_ALTER_EXIT:
     {

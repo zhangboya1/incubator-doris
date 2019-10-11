@@ -863,6 +863,7 @@ OLAPStatus EngineCloneTask::_clone_full_data(Tablet* tablet, TabletMeta* cloned_
     // 4. if cleared alter task info, then push will not write to new tablet, the report info is error
     OLAPStatus clone_res = tablet->add_rowsets(rowsets_to_clone);
     LOG(INFO) << "finish to full clone. tablet=" << tablet->full_name() << ", res=" << clone_res;
+
     // in previous step, copy all files from CLONE_DIR to tablet dir
     // but some rowset is useless, so that remove them here
     for (auto& rs_meta_ptr : rs_metas_found_in_src) {

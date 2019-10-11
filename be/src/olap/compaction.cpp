@@ -144,23 +144,13 @@ OLAPStatus Compaction::add_rowsets() {
     std::vector<RowsetSharedPtr> output_rowsets;
     output_rowsets.push_back(_output_rowset);
     
-    WriteLock wrlock(_tablet->get_header_lock_ptr());
     OLAPStatus res = _tablet->add_rowsets(output_rowsets);
     if (res != OLAP_SUCCESS) {
-        LOG(FATAL) << "fail to replace data sources. res" << res
-                   << ", tablet=" << _tablet->full_name()
-                   << ", compaction__version=" << _output_version.first
-                   << "-" << _output_version.second;
-        return res;
-    }
-
-    res = _tablet->save_meta();
-    if (res != OLAP_SUCCESS) {
-        LOG(FATAL) << "fail to save tablet meta. res=" << res
+        LOG(FATAL) << "fail to add rowsets. res" << res
                    << ", tablet=" << _tablet->full_name()
                    << ", compaction_version=" << _output_version.first
                    << "-" << _output_version.second;
-        return OLAP_ERR_BE_SAVE_HEADER_ERROR;
+        return res;
     }
 
     return OLAP_SUCCESS;
