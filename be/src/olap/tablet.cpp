@@ -940,7 +940,7 @@ void Tablet::build_tablet_report_info(TTabletInfo* tablet_info) {
     tablet_info->data_size = _tablet_meta->tablet_footprint();
     Version version = { -1, 0 };
     VersionHash v_hash = 0;
-    _max_continuous_version_from_begining_unlocked(&version, &v_hash);
+    max_continuous_version_from_begining_unlock(&version, &v_hash);
     auto max_rowset = rowset_with_max_version();
     if (max_rowset != nullptr) {
         if (max_rowset->version() != version) {

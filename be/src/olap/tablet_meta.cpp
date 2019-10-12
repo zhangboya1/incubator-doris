@@ -485,6 +485,12 @@ OLAPStatus TabletMeta::add_rs_meta(const RowsetMetaSharedPtr& rs_meta) {
     return OLAP_SUCCESS;
 }
 
+OLAPStatus TabletMeta::revise_rs_metas(const vector<RowsetMetaSharedPtr>& to_add) {
+    _rs_metas.clear();
+    RETURN_NOT_OK(add_rs_metas(to_add));
+    return OLAP_SUCCESS;
+}
+
 OLAPStatus TabletMeta::delete_rs_meta_by_version(const Version& version, vector<RowsetMetaSharedPtr>* deleted_rs_metas) {
     auto it = _rs_metas.begin();
     while (it != _rs_metas.end()) {

@@ -253,7 +253,6 @@ private:
                                                               VersionHash* v_hash) const ;
     void _gen_tablet_path();
     RowsetSharedPtr _rowset_with_largest_size();
-    void _delete_inc_rowset_by_version(const Version& version, const VersionHash& version_hash);
     OLAPStatus _capture_consistent_rowsets_unlocked(const vector<Version>& version_path,
                                                     vector<RowsetSharedPtr>* rowsets) const;
 
