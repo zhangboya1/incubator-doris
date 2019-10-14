@@ -107,14 +107,13 @@ public:
     inline size_t field_index(const string& field_name) const;
 
     // operation in rowsets
-    OLAPStatus add_rowset(RowsetSharedPtr rowset, bool need_persist = true);
+    OLAPStatus add_rowset(RowsetSharedPtr rowset, bool need_to_persist = NOT_NEED_TO_PERSIST);
     OLAPStatus add_rowsets(const vector<RowsetSharedPtr>& to_add);
     OLAPStatus delete_rowsets(const vector<RowsetSharedPtr>& to_delete);
 
     // _rs_version_map and _inc_rs_version_map should be protected by _meta_lock
     // The caller must call hold _meta_lock when call this two function.
     const RowsetSharedPtr get_rowset_by_version(const Version& version) const;
-    const RowsetSharedPtr get_inc_rowset_by_version(const Version& version) const;
 
     const RowsetSharedPtr rowset_with_max_version() const;
 

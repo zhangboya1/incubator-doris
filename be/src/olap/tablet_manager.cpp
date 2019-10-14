@@ -1232,7 +1232,7 @@ OLAPStatus TabletManager::_create_inital_rowset_unlocked(const TCreateTabletReq&
             }
 
             new_rowset = builder->build();
-            res = tablet->add_rowset(new_rowset, false);
+            res = tablet->add_rowset(new_rowset, NOT_NEED_TO_PERSIST);
             if (res != OLAP_SUCCESS) {
                 LOG(WARNING) << "failed to add rowset for tablet " << tablet->full_name();
                 break;

@@ -141,7 +141,7 @@ OLAPStatus Compaction::construct_input_rowset_readers() {
 }
 
 OLAPStatus Compaction::add_rowsets() {
-    OLAPStatus res = _tablet->add_rowset(_output_rowset);
+    OLAPStatus res = _tablet->add_rowset(_output_rowset, NEED_TO_PERSIST);
     if (res != OLAP_SUCCESS) {
         LOG(FATAL) << "fail to add rowsets. res" << res
                    << ", tablet=" << _tablet->full_name()

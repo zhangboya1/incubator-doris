@@ -1296,6 +1296,15 @@ OLAPStatus SchemaChangeHandler::_do_process_alter_tablet_v2(const TAlterTabletRe
             break;
         }
 
+        // should check the max_version >= request.alter_version, if not the convert is useless
+        RowsetSharedPtr max_rowset = base_tablet->rowset_with_max_version();
+        if (max_rowset == nullptr || max_rowset->end_version() < request.alter_version) {
+            LOG(WARNING) << "base tablet's max version=" << (max_rowset == nullptr ? 0 : max_rowset->end_version())
+                         << " is less than request version=" << request.alter_version;
+            res = OLAP_ERR_VERSION_NOT_EXIST;
+            break;
+        }
+
         // set cumulative_point to minus one
         new_tablet->set_cumulative_layer_point(-1);
 
@@ -1742,7 +1751,8 @@ OLAPStatus SchemaChangeHandler::_convert_historical_rowsets(const SchemaChangePa
     res = sc_params.new_tablet->add_rowsets(rowsets_converted);
     if (res != OLAP_SUCCESS) {
         LOG(INFO) << "add rowsets failed because of shortest-path inexistence."
-                  << " base_tablet=" << sc_params.base_tablet->full_name()
+                  << " res=" << res
+                  << ", base_tablet=" << sc_params.base_tablet->full_name()
                   << ", new_tablet=" << sc_params.new_tablet->full_name();
         SAFE_DELETE(sc_procedure);
         return res;
