@@ -93,22 +93,7 @@ public class MiniLoadJob extends LoadJob {
     }
 
     @Override
-    protected void executeAfterAborted(TransactionState txnState) {
-        updateLoadingStatue(txnState);
-    }
-
-    @Override
-    protected void executeAfterVisible(TransactionState txnState) {
-        updateLoadingStatue(txnState);
-    }
-
-    @Override
-    protected void executeReplayOnAborted(TransactionState txnState) {
-        updateLoadingStatue(txnState);
-    }
-
-    @Override
-    protected void executeReplayOnVisible(TransactionState txnState) {
+    protected void replayTxnAttachment(TransactionState txnState) {
         updateLoadingStatue(txnState);
     }
 

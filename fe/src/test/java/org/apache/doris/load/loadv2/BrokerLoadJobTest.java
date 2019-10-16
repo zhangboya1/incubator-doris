@@ -400,7 +400,7 @@ public class BrokerLoadJobTest {
                 result = JobState.CANCELLED;
             }
         };
-        brokerLoadJob.executeReplayOnAborted(txnState);
+        brokerLoadJob.replayTxnAttachment(txnState);
         Assert.assertEquals(99, (int) Deencapsulation.getField(brokerLoadJob, "progress"));
         Assert.assertEquals(1, brokerLoadJob.getFinishTimestamp());
         Assert.assertEquals(JobState.CANCELLED, brokerLoadJob.getState());
@@ -426,7 +426,7 @@ public class BrokerLoadJobTest {
                 result = JobState.LOADING;
             }
         };
-        brokerLoadJob.executeReplayOnAborted(txnState);
+        brokerLoadJob.replayTxnAttachment(txnState);
         Assert.assertEquals(99, (int) Deencapsulation.getField(brokerLoadJob, "progress"));
         Assert.assertEquals(1, brokerLoadJob.getFinishTimestamp());
         Assert.assertEquals(JobState.LOADING, brokerLoadJob.getState());
