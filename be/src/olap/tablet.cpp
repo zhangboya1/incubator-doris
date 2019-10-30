@@ -168,7 +168,11 @@ OLAPStatus Tablet::add_rowset(RowsetSharedPtr rowset, bool need_persist) {
 
 OLAPStatus Tablet::add_rowsets(const vector<RowsetSharedPtr>& to_add) {
     WriteLock wrlock(&_meta_lock);
+    RETURN_NOT_OK(add_rowsets_unlock(to_add));
+    return OLAP_SUCCESS;
+}
 
+OLAPStatus Tablet::add_rowsets_unlock(const vector<RowsetSharedPtr>& to_add) {
     // Add rowsets to tablet_meta for compaction/clone/alter table/rollup.
     // Before taking these rowsets into effect, should
     // check shortest-path existence after adding rowsets

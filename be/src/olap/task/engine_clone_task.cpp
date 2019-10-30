@@ -780,7 +780,7 @@ OLAPStatus EngineCloneTask::_clone_incremental_data(Tablet* tablet, const Tablet
         rowsets_to_clone.push_back(rowset);
     }
 
-    OLAPStatus clone_res = tablet->add_rowsets(rowsets_to_clone);
+    OLAPStatus clone_res = tablet->add_rowsets_unlock(rowsets_to_clone);
     LOG(INFO) << "finish to incremental clone. tablet=" << tablet->full_name() << " res=" << clone_res;
     return clone_res;
 }
@@ -861,7 +861,7 @@ OLAPStatus EngineCloneTask::_clone_full_data(Tablet* tablet, TabletMeta* cloned_
     // 2. local tablet has error in push
     // 3. local tablet cloned rowset from other nodes
     // 4. if cleared alter task info, then push will not write to new tablet, the report info is error
-    OLAPStatus clone_res = tablet->add_rowsets(rowsets_to_clone);
+    OLAPStatus clone_res = tablet->add_rowsets_unlock(rowsets_to_clone);
     LOG(INFO) << "finish to full clone. tablet=" << tablet->full_name() << ", res=" << clone_res;
 
     // in previous step, copy all files from CLONE_DIR to tablet dir

@@ -109,6 +109,7 @@ public:
     // operation in rowsets
     OLAPStatus add_rowset(RowsetSharedPtr rowset, bool need_to_persist = NOT_NEED_TO_PERSIST);
     OLAPStatus add_rowsets(const vector<RowsetSharedPtr>& to_add);
+    OLAPStatus add_rowsets_unlock(const vector<RowsetSharedPtr>& to_add);
     OLAPStatus delete_rowsets(const vector<RowsetSharedPtr>& to_delete);
 
     // _rs_version_map and _inc_rs_version_map should be protected by _meta_lock
