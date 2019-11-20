@@ -59,8 +59,8 @@ public:
     bool is_used();
 
     inline DataDir* data_dir() const;
-    void register_tablet_into_dir();
-    void deregister_tablet_from_dir();
+    inline void register_tablet_into_dir();
+    inline void deregister_tablet_from_dir();
 
     std::string tablet_path() const;
 
@@ -112,7 +112,7 @@ public:
     OLAPStatus add_rowsets_unlock(const vector<RowsetSharedPtr>& to_add);
     OLAPStatus delete_rowsets(const vector<RowsetSharedPtr>& to_delete);
 
-    // _rs_version_map and _inc_rs_version_map should be protected by _meta_lock
+    // _rs_version_map should be protected by _meta_lock
     // The caller must call hold _meta_lock when call this two function.
     const RowsetSharedPtr get_rowset_by_version(const Version& version) const;
 
@@ -176,8 +176,8 @@ public:
 
     // operation for clone
     void calc_missed_versions(int64_t spec_version, vector<Version>* missed_versions);
-    void calc_missed_versions_unlocked(int64_t spec_version,
-                                       vector<Version>* missed_versions) const;
+    void calc_missed_versions_unlock(int64_t spec_version,
+                                     vector<Version>* missed_versions) const;
 
     // This function to find max continous version from the beginning.
     // For example: If there are 1, 2, 3, 5, 6, 7 versions belongs tablet, then 3 is target.
@@ -249,8 +249,6 @@ private:
     void _print_missed_versions(const std::vector<Version>& missed_versions) const;
     bool _contains_rowset(const RowsetId rowset_id);
     OLAPStatus _contains_version(const Version& version);
-    OLAPStatus _max_continuous_version_from_begining_unlocked(Version* version,
-                                                              VersionHash* v_hash) const ;
     void _gen_tablet_path();
     RowsetSharedPtr _rowset_with_largest_size();
     OLAPStatus _capture_consistent_rowsets_unlocked(const vector<Version>& version_path,
@@ -277,16 +275,7 @@ private:
     // TODO(lingbin): There is a _meta_lock TabletMeta too, there should be a comment to
     // explain how these two locks work together.
     RWMutex _meta_lock;
-    // A new load job will produce a new rowset, which will be inserted into both _rs_version_map
-    // and _inc_rs_version_map. Only the most recent rowsets are kept in _inc_rs_version_map to
-    // reduce the amount of data that needs to be copied during the clone task.
-    // NOTE: Not all incremental-rowsets are in _rs_version_map. Because after some rowsets
-    // are compacted, they will be remove from _rs_version_map, but it may not be deleted from
-    // _inc_rs_version_map.
-    // Which rowsets should be deleted from _inc_rs_version_map is affected by
-    // inc_rowset_expired_sec conf. In addition, the deletion is triggered periodically,
-    // So at a certain time point (such as just after a base compaction), some rowsets in
-    // _inc_rs_version_map may do not exist in _rs_version_map.
+    // A new load job will produce a new rowset, which will be inserted into both _rs_version_map.
     std::unordered_map<Version, RowsetSharedPtr, HashOfVersion> _rs_version_map;
 
     // if this tablet is broken, set to true. default is false
@@ -306,6 +295,14 @@ private:
     DISALLOW_COPY_AND_ASSIGN(Tablet);
 };
 
+inline void Tablet::register_tablet_into_dir() {
+    _data_dir->register_tablet(this);
+}
+
+inline void Tablet::deregister_tablet_from_dir() {
+    _data_dir->deregister_tablet(this);
+}
+
 inline bool Tablet::init_succeeded() {
     return _init_once.has_called() && _init_once.stored_result() == OLAP_SUCCESS;
 }
@@ -316,14 +313,6 @@ inline bool Tablet::is_used() {
 
 inline DataDir* Tablet::data_dir() const {
     return _data_dir;
-}
-
-inline void Tablet::register_tablet_into_dir() {
-    _data_dir->register_tablet(this);
-}
-
-inline void Tablet::deregister_tablet_from_dir() {
-    _data_dir->deregister_tablet(this);
 }
 
 inline string Tablet::tablet_path() const {

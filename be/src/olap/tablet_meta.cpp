@@ -474,6 +474,7 @@ OLAPStatus TabletMeta::add_rs_meta(const RowsetMetaSharedPtr& rs_meta) {
     return OLAP_SUCCESS;
 }
 
+OLAPStatus TabletMeta::add_rs_metas(const vector<RowsetMetaSharedPtr>& to_add) {
     // check RowsetMeta is valid
     for (auto& rs_meta : to_add) {
         _rs_metas.push_back(std::move(rs_meta));
@@ -499,11 +500,12 @@ OLAPStatus TabletMeta::delete_rs_meta_by_version(const Version& version, vector<
                 deleted_rs_metas->push_back(*it);
             }
             _rs_metas.erase(it);
-            return;
+            return OLAP_SUCCESS;
         } else {
             ++it;
         }
     }
+    return OLAP_SUCCESS;
 }
 
 OLAPStatus TabletMeta::delete_rs_metas(const vector<RowsetMetaSharedPtr>& to_delete) {
@@ -538,7 +540,7 @@ RowsetMetaSharedPtr TabletMeta::acquire_rs_meta_by_version(const Version& versio
     return rs_meta;
 }
 
-OLAPStatus TabletMeta::add_delete_predicate(
+void TabletMeta::add_delete_predicate(
             const DeletePredicatePB& delete_predicate, int64_t version) {
     int ordinal = 0;
     for (auto& del_pred : _del_pred_array) {

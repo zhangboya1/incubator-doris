@@ -772,7 +772,7 @@ OLAPStatus EngineCloneTask::_clone_incremental_data(Tablet* tablet, const Tablet
         Version version = { rs_meta->start_version(), rs_meta->end_version() };
         RowsetSharedPtr rowset;
         res = RowsetFactory::create_rowset(&(tablet->tablet_schema()), tablet->tablet_path(),
-                                           tablet->data_dir(), rs_meta, &rowset);
+                                           rs_meta, &rowset);
         if (res != OLAP_SUCCESS) {
             LOG(WARNING) << "fail to init rowset. version=" << version.first << "-" << version.second;
             return res;
@@ -834,8 +834,7 @@ OLAPStatus EngineCloneTask::_clone_full_data(Tablet* tablet, TabletMeta* cloned_
                 } else {
                     LOG(INFO) << "Delta has already existed in local header, no need to clone."
                         << "tablet=" << tablet->full_name()
-                        << ", version='" << local_version.first<< "-" << local_version.second
-                        << ", version_hash=" << local_version_hash;
+                        << ", version='" << local_version.first<< "-" << local_version.second;
                 }
             }
         }
@@ -847,7 +846,7 @@ OLAPStatus EngineCloneTask::_clone_full_data(Tablet* tablet, TabletMeta* cloned_
         Version version = { rs_meta->start_version(), rs_meta->end_version() };
         RowsetSharedPtr rowset;
         res = RowsetFactory::create_rowset(&(tablet->tablet_schema()), tablet->tablet_path(),
-                                           tablet->data_dir(), rs_meta, &rowset);
+                                           rs_meta, &rowset);
         if (res != OLAP_SUCCESS) {
             LOG(WARNING) << "fail to init rowset. version=" << version.first << "-" << version.second;
             return res;

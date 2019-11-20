@@ -421,15 +421,9 @@ OLAPStatus SnapshotManager::_create_snapshot_files(
 
         if (snapshot_version == g_Types_constants.TSNAPSHOT_REQ_VERSION1) {
             // convert beta rowset to alpha rowset
-            if (request.__isset.missing_version) {
-                res = _convert_beta_rowsets_to_alpha(
-                    new_tablet_meta, new_tablet_meta->all_inc_rs_metas(),
-                    schema_full_path, true);
-            } else {
-                res = _convert_beta_rowsets_to_alpha(
+            res = _convert_beta_rowsets_to_alpha(
                     new_tablet_meta, new_tablet_meta->all_rs_metas(),
                     schema_full_path, false);
-            }
             if (res != OLAP_SUCCESS) {
                 break;
             }
@@ -522,11 +516,7 @@ OLAPStatus SnapshotManager::_convert_beta_rowsets_to_alpha(const TabletMetaShare
         }
     }
     if (res == OLAP_SUCCESS && modified) {
-        if (is_incremental) {
-            new_tablet_meta->revise_inc_rs_metas(std::move(new_rowset_metas));
-        } else {
-            new_tablet_meta->revise_rs_metas(std::move(new_rowset_metas));
-        }
+        new_tablet_meta->revise_rs_metas(std::move(new_rowset_metas));
     }
     return res;
 }

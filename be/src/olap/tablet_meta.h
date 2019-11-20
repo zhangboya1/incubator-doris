@@ -207,12 +207,7 @@ private:
 
     TabletState _tablet_state = TABLET_NOTREADY;
     TabletSchema _schema;
-<<<<<<< HEAD
-    std::vector<RowsetMetaSharedPtr> _rs_metas;
-    std::vector<RowsetMetaSharedPtr> _inc_rs_metas;
-=======
     vector<RowsetMetaSharedPtr> _rs_metas;
->>>>>>> And multi-path in RowsetGraph
     DelPredicateArray _del_pred_array;
     AlterTabletTaskSharedPtr _alter_task;
     bool _in_restore_mode = false;
@@ -313,13 +308,6 @@ inline const std::vector<RowsetMetaSharedPtr>& TabletMeta::all_rs_metas() const 
     return _rs_metas;
 }
 
-<<<<<<< HEAD
-inline const std::vector<RowsetMetaSharedPtr>& TabletMeta::all_inc_rs_metas() const {
-    return _inc_rs_metas;
-}
-
-=======
->>>>>>> And multi-path in RowsetGraph
 }  // namespace doris
 
 #endif // DORIS_BE_SRC_OLAP_OLAP_TABLET_META_H

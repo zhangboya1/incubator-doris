@@ -975,9 +975,6 @@ OLAPStatus TabletManager::start_trash_sweep() {
                 }
             }
 
-            for (const auto& tablet : all_tablets) {
-                tablet->delete_expired_inc_rowsets();
-            }
             all_tablets.clear();
 
             if (!tablets_to_clean.empty()) {
@@ -1390,10 +1387,13 @@ void TabletManager::_remove_tablet_from_partition(const Tablet& tablet) {
 void TabletManager::capture_unused_rowset_in_tablet() {
     std::vector<TabletSharedPtr> _tablet_vec;
     {
-        ReadLock rdlock(&_tablet_map_lock);
-        for (auto& item : _tablet_map) {
-            for (auto& tablet : item.second.table_arr) {
-                _tablet_vec.push_back(tablet);
+        for (int32 i = 0; i < _tablet_map_lock_shard_size; i++) {
+            ReadLock tablet_map_rdlock(&_tablet_map_lock_array[i]);
+            tablet_map_t& tablet_map = _tablet_map_array[i];
+            for (tablet_map_t::value_type& table_ins : tablet_map){
+                for (TabletSharedPtr& tablet_ptr : table_ins.second.table_arr) {
+                    _tablet_vec.push_back(tablet_ptr);
+                }
             }
         }
     }

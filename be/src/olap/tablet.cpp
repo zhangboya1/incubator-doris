@@ -129,14 +129,6 @@ OLAPStatus Tablet::save_meta() {
     return res;
 }
 
-OLAPStatus Tablet::register_tablet_into_dir() {
-    return _data_dir->register_tablet(this);
-}
-
-OLAPStatus Tablet::deregister_tablet_from_dir() {
-    return _data_dir->deregister_tablet(this);
-}
-
 OLAPStatus Tablet::add_rowset(RowsetSharedPtr rowset, bool need_persist) {
     DCHECK(rowset != nullptr);
     WriteLock wrlock(&_meta_lock);
@@ -245,19 +237,6 @@ const RowsetSharedPtr Tablet::get_rowset_by_version(const Version& version) cons
     return rowset;
 }
 
-// This function only be called by SnapshotManager to perform incremental clone.
-// It will be called under protected of _metalock(SnapshotManager will fetch it manually),
-// so it is no need to lock here.
-const RowsetSharedPtr Tablet::get_inc_rowset_by_version(const Version& version) const {
-    auto iter = _inc_rs_version_map.find(version);
-    if (iter == _inc_rs_version_map.end()) {
-        VLOG(3) << "no rowset for version:" << version << ", tablet: " << full_name();
-        return nullptr;
-    }
-    RowsetSharedPtr rowset = iter->second;
-    return rowset;
-}
-
 // Already under _meta_lock
 const RowsetSharedPtr Tablet::rowset_with_max_version() const {
     Version max_version = _tablet_meta->max_version();
@@ -296,7 +275,7 @@ OLAPStatus Tablet::capture_consistent_versions(const Version& spec_version,
     OLAPStatus status = _rs_graph.capture_consistent_versions(spec_version, version_path);
     if (status != OLAP_SUCCESS) {
         std::vector<Version> missed_versions;
-        calc_missed_versions_unlocked(spec_version.second, &missed_versions);
+        calc_missed_versions_unlock(spec_version.second, &missed_versions);
         if (missed_versions.empty()) {
             LOG(WARNING) << "tablet:" << full_name()
                          << ", version already has been merged. spec_version: " << spec_version;
@@ -512,14 +491,14 @@ void Tablet::compute_version_hash_from_rowsets(
 
 void Tablet::calc_missed_versions(int64_t spec_version, vector<Version>* missed_versions) {
     ReadLock rdlock(&_meta_lock);
-    calc_missed_versions_unlocked(spec_version, missed_versions);
+    calc_missed_versions_unlock(spec_version, missed_versions);
 }
 
 // TODO(lingbin): there may be a bug here, should check it.
 // for example:
 //     [0-4][5-5][8-8][9-9]
 // if spec_version = 6, we still return {6, 7} other than {7}
-void Tablet::calc_missed_versions_unlocked(int64_t spec_version,
+void Tablet::calc_missed_versions_unlock(int64_t spec_version,
                                            vector<Version>* missed_versions) const {
     DCHECK(spec_version > 0) << "invalid spec_version: " << spec_version;
     std::list<Version> existing_versions;
@@ -554,13 +533,7 @@ void Tablet::calc_missed_versions_unlocked(int64_t spec_version,
 OLAPStatus Tablet::max_continuous_version_from_begining(Version* version,
                                                         VersionHash* v_hash) {
     ReadLock rdlock(&_meta_lock);
-    return _max_continuous_version_from_begining_unlocked(version, v_hash);
-}
-
-OLAPStatus Tablet::_max_continuous_version_from_begining_unlocked(Version* version,
-                                                                  VersionHash* v_hash) const {
-    RETURN_NOT_OK(max_continuous_version_from_begining_unlock(version, v_hash));
-    return OLAP_SUCCESS;
+    return max_continuous_version_from_begining_unlock(version, v_hash);
 }
 
 OLAPStatus Tablet::max_continuous_version_from_begining_unlock(Version* version, VersionHash* v_hash) {
@@ -789,11 +762,12 @@ void Tablet::pick_candicate_rowsets_to_cumulative_compaction(int64_t skip_window
                                                              std::vector<RowsetSharedPtr>* candidate_rowsets) {
     int64_t now = UnixSeconds();
     ReadLock rdlock(&_meta_lock);
+    Version spec_version(_cumulative_point, max_version().second);
     std::vector<Version> version_path;
     _rs_graph.capture_consistent_versions(spec_version, &version_path);
     for (auto& version : version_path) {
         auto it = _rs_version_map.find(version);
-        if (it->creation_time() + skip_window_sec < now) {
+        if (it->second->creation_time() + skip_window_sec < now) {
             candidate_rowsets->push_back(it->second);
         }
     }
@@ -806,6 +780,12 @@ void Tablet::pick_candicate_rowsets_to_base_compaction(std::vector<RowsetSharedP
     _rs_graph.capture_consistent_versions(spec_version, &version_path);
     for (auto& version : version_path) {
         auto it = _rs_version_map.find(version);
+        if (it == _rs_version_map.end() || it->second == nullptr) {
+            LOG(FATAL) << "iterator is nullptr: "
+                       << (it == _rs_version_map.end())
+                       << ", rowset is nullptr: "
+                       << (it->second == nullptr);
+        }
         candidate_rowsets->push_back(it->second);
     }
 }
@@ -1015,7 +995,9 @@ OLAPStatus Tablet::capture_unused_rowsets() {
         _tablet_meta->delete_rs_meta_by_version(pair.first, nullptr);
         StorageEngine::instance()->add_unused_rowset(pair.second);
     }
-    RETURN_NOT_OK(save_meta());
+
+    _rs_graph.reconstruct_rowset_graph(_tablet_meta->all_rs_metas());
+
     return OLAP_SUCCESS;
 }
 
