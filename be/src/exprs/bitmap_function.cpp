@@ -302,7 +302,8 @@ void BitmapFunctions::bitmap_union(FunctionContext* ctx, const StringVal& src, S
     }
 }
 
-void BitmapFunctions::bitmap_intersect_init(FunctionContext* ctx, StringVal* dst) {
+// this is the read init function for bitmap_intersect
+void BitmapFunctions::bitmap_intersect_init_real(FunctionContext* ctx, StringVal* dst) {
     dst->is_null = true;
 }
 
@@ -378,8 +379,9 @@ StringVal BitmapFunctions::bitmap_serialize(FunctionContext* ctx, const StringVa
     }
 }
 
+// This is a init function for intersect_count not for bitmap_intersect.
 template<typename T, typename ValType>
-void BitmapFunctions::intersect_count_init(FunctionContext* ctx, StringVal* dst) {
+void BitmapFunctions::bitmap_intersect_init(FunctionContext* ctx, StringVal* dst) {
     dst->is_null = false;
     dst->len = sizeof(BitmapIntersect<T>);
     auto intersect = new BitmapIntersect<T>();
