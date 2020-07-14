@@ -23,85 +23,20 @@ under the License.
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.apache</groupId>
-    <artifactId>doris-fe</artifactId>
+    <parent>
+        <groupId>org.apache</groupId>
+        <artifactId>doris-fe</artifactId>
+        <version>3.4.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>doris-fe-core</artifactId>
     <version>3.4.0</version>
     <packaging>jar</packaging>
 
-    <name>doris-fe</name>
-    <url>https://github.com/apache/incubator-doris</url>
-
     <properties>
-        <palo.home>${basedir}/../</palo.home>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <jprotobuf.version>2.2.11</jprotobuf.version>
-        <skip.plugin>false</skip.plugin>
-        <fe_ut_parallel>${env.FE_UT_PARALLEL}</fe_ut_parallel>
+        <palo.home>${basedir}/../../</palo.home>
     </properties>
-
-    <profiles>
-        <!-- for custom internal repository -->
-        <profile>
-            <id>custom-env</id>
-            <activation>
-                <property>
-                    <name>env.CUSTOM_MAVEN_REPO</name>
-                </property>
-            </activation>
-
-            <repositories>
-                <repository>
-                    <id>custom-nexus</id>
-                    <url>${env.CUSTOM_MAVEN_REPO}</url>
-                </repository>
-            </repositories>
-
-            <pluginRepositories>
-                <pluginRepository>
-                    <id>custom-nexus</id>
-                    <url>${env.CUSTOM_MAVEN_REPO}</url>
-                </pluginRepository>
-            </pluginRepositories>
-        </profile>
-
-        <!-- for general repository -->
-        <profile>
-            <id>general-env</id>
-            <activation>
-                <property>
-                    <name>!env.CUSTOM_MAVEN_REPO</name>
-                </property>
-            </activation>
-
-            <repositories>
-                <repository>
-                    <id>central</id>
-                    <name>central maven repo https</name>
-                    <url>https://repo.maven.apache.org/maven2</url>
-                </repository>
-                <!-- for java-cup -->
-                <repository>
-                    <id>cloudera-thirdparty</id>
-                    <url>https://repository.cloudera.com/content/repositories/third-party/</url>
-                </repository>
-                <!-- for bdb je -->
-                <repository>
-                    <id>oracleReleases</id>
-                    <url>http://download.oracle.com/maven</url>
-                </repository>
-            </repositories>
-
-            <pluginRepositories>
-                <!-- for cup-maven-plugin -->
-                <pluginRepository>
-                    <id>spring-plugins</id>
-                    <url>https://repo.spring.io/plugins-release/</url>
-                </pluginRepository>
-            </pluginRepositories>
-        </profile>
-    </profiles>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/cglib/cglib -->
@@ -888,17 +823,4 @@ under the License.
         </pluginManagement>
 
     </build>
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <configLocation>checkstyle.xml</configLocation>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
 </project>
