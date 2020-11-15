@@ -58,6 +58,7 @@ In some cases, users may not be able to successfully obtain Doris binary files t
 
 ### Download link
 
+* [0.12.21-release (447MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.12.21-release.tar.gz) [Update 2020-08-11]
 * [0.13.9-release (547MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.13.9-release.tar.gz) [Update 2020-10-21]
 * [0.13.11-release (552MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.13.11-release.tar.gz) [Update 2020-11-15]
 
