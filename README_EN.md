@@ -62,6 +62,22 @@ In some cases, users may not be able to successfully obtain Doris binary files t
 * [0.13.9-release (547MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.13.9-release.tar.gz) [Update 2020-10-21]
 * [0.13.11-release (552MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.13.11-release.tar.gz) [Update 2020-11-15]
 
+    * Change Log
+
+        1. New features
+
+            * Support persisting FE or BE configuration parameters modified at runtime. [#4704](https://github.com/apache/incubator-doris/pull/4704)
+            * Support to modify external tables through ALTER TABLE statement. [#4699](https://github.com/apache/incubator-doris/pull/4699)
+            * Support access to PostgreSQL external tables via ODBC protocol. [#4798](https://github.com/apache/incubator-doris/pull/4798)
+            * The BE web page supports generating CPU and Heap profile. [#4632](https://github.com/apache/incubator-doris/pull/4632)
+
+        2. Serious bug fixes
+
+            * Fix the problem that the BE Compaction task may cause BE crash. [#4829](https://github.com/apache/incubator-doris/pull/4829)
+            * Fix the problem that the job is always in the Loading state due to the exception not being caught when the load task is scheduled. [#4796](https://github.com/apache/incubator-doris/pull/4796)
+            * Fix the problem that restarting the Master FE may cause the status of some completed load jobs to become UNKNOWN. [#4869](https://github.com/apache/incubator-doris/pull/4869)
+            * Fix the problem that renaming a table may cause the new table name and the materialized view to have the same name. [#4870](https://github.com/apache/incubator-doris/pull/4870)
+
 ## Docker compilation environment mirror download
 
 For some reasons, downloading the image `docker.io/apachedoris/doris-dev:build-env-1.2` via `docker pull` is very slow. You can download the image locally through the following link, and then load the image through the `docker load` command:

@@ -66,6 +66,22 @@
 * [0.13.9-release (547MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.13.9-release.tar.gz) [更新于 2020-10-21]
 * [0.13.11-release (552MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.13.11-release.tar.gz) [更新于 2020-11-15]
 
+    * Change Log
+
+        1. 新增功能
+
+            * 支持持久化存储在运行时修改的FE或BE配置参数。[#4704](https://github.com/apache/incubator-doris/pull/4704)
+            * 支持通过 ALTER TABLE 语句修改外部表。[#4699](https://github.com/apache/incubator-doris/pull/4699)
+            * 支持通过 ODBC 协议访问 PostgreSQL 外部表。[#4798](https://github.com/apache/incubator-doris/pull/4798)
+            * BE 端 Web 页面支持生成 CPU 和 Heap 性能报告。[#4632](https://github.com/apache/incubator-doris/pull/4632)
+
+        2. 严重 Bug 修复
+
+            * 修复 BE 端 Compaction 任务可能导致 BE 宕机的问题。[#4829](https://github.com/apache/incubator-doris/pull/4829)
+            * 修复导入任务调度时因异常未捕获，导致作业一直处于 Loading 状态的问题。[#4796](https://github.com/apache/incubator-doris/pull/4796)
+            * 修复重启 Master FE 可能导致部分已完成的导入作业状态变成 UNKNOWN 的问题。[#4869](https://github.com/apache/incubator-doris/pull/4869)
+            * 修复重命名表可能导致新表名和物化视图重名的问题。[#4870](https://github.com/apache/incubator-doris/pull/4870)
+
 ## Docker 编译环境镜像下载
 
 某些原因可能导致通过 `docker pull` 的方式下载 `docker.io/apachedoris/doris-dev:build-env-1.2` 这个镜像非常缓慢。你可以通过以下链接将镜像下载到本地后，在通过 `docker load` 命令加载镜像：
