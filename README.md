@@ -26,6 +26,7 @@
 * DORIS-0.10.23-release
 * DORIS-0.11.44-release
 * DORIS-0.12.21-release
+* DORIS-0.13.12-release
 
 所有 3 位版本可以安全的从对应的官方 2 位版本升级。3 位版本本身也是兼容的，可以安全升级。举例如下：
 
@@ -81,6 +82,38 @@
             * 修复导入任务调度时因异常未捕获，导致作业一直处于 Loading 状态的问题。[#4796](https://github.com/apache/incubator-doris/pull/4796)
             * 修复重启 Master FE 可能导致部分已完成的导入作业状态变成 UNKNOWN 的问题。[#4869](https://github.com/apache/incubator-doris/pull/4869)
             * 修复重命名表可能导致新表名和物化视图重名的问题。[#4870](https://github.com/apache/incubator-doris/pull/4870)
+
+* [0.13.12-release (560MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.13.12-release.tar.gz) [更新于 2020-12-14]
+
+    * 76 Commits added
+    * Change Log
+
+        1. 新增功能
+
+            * 支持更多的列类型变换。
+            * 支持一种新的 Join Reorder 算法。
+
+                使用一种更合理的方式进行 SQL 中 Join 顺序调整，以尽量避免 Cross Join。该算法在 TPC-DS 的 #17 #25 #29 #37 #82 有显著效果。
+                
+                该功能为实验性质，可以通过会话变量 `enable_cost_based_join_reorder` 开启。默认关闭。
+
+            * 支持通过 BE 端计算 SQL 中的常量表达式。
+
+                支持对 SQL 中的所有常量表达式发送到 BE 端进行计算。该功能扩展了原先在 FE 端进行常量折叠的功能。但可能产生更多的 RPC 开销。
+
+                该功能为实验性质，可以通过会话变量 `enable_fold_constant_by_be` 开启。默认关闭。
+
+            * 优化了 Unique Key 模型表的读取效率，在部分场景下提升 20% - 40% 的效率。
+
+            * 禁止分区列值为 NULL。
+
+                可以通过会话变量 `allow_partition_column_nullable` 来禁止。默认为 false。
+
+            * 增强了部分 MySQL 生态工具的连接兼容性。
+            
+        2. 严重 Bug 修复
+
+            * 修复在 Compaction 失败后，垃圾文件未清除导致磁盘空间写满的问题。[#4964](https://github.com/apache/incubator-doris/pull/4964)
 
 ## Docker 编译环境镜像下载
 
