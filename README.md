@@ -10,6 +10,12 @@
 
 所有 3 位迭代版本请看 [这里](https://github.com/baidu-doris/incubator-doris/tags)
 
+## 特别声明
+
+Apache、Apache Doris 以及 Doris 名称归属于 Apache 软件基金会。
+
+本仓库代码非 Apache 官方 Release 版本，但与 Apache 版本完全兼容。官方版本请前往 [官方网站](doris.apache.org) 下载。
+
 ## 使用说明
 
 目前 Apache Doris 的 [官方Release版本](https://github.com/apache/incubator-doris/tags) 为：
@@ -63,17 +69,7 @@
 
 ### 下载链接
 
-下载连接请移步至 [百度数据仓库Palo-开源专区](https://cloud.baidu.com/doc/PALO/s/Ikivhcwb5)
-
-## Docker 编译环境镜像下载
-
-某些原因可能导致通过 `docker pull` 的方式下载 `docker.io/apachedoris/doris-dev:build-env-1.2` 这个镜像非常缓慢。你可以通过以下链接将镜像下载到本地后，在通过 `docker load` 命令加载镜像：
-
-下载连接请移步至 [百度数据仓库Palo-开源专区](https://cloud.baidu.com/doc/PALO/s/Ikivhcwb5)
-
-`docker load --input apachedoris-build-env-1.2`
-
-之后可以通过 `docker images` 查看到该镜像。
+[下载连接](http://palo.baidu.com/docs/%E4%B8%8B%E8%BD%BD%E4%B8%93%E5%8C%BA/%E9%A2%84%E7%BC%96%E8%AF%91%E7%89%88%E6%9C%AC%E4%B8%8B%E8%BD%BD)
 
 ## 百度数据仓库 Palo
 

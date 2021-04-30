@@ -8,6 +8,14 @@ These PATCH versions have been tested and launched within Baidu, and all code su
 
 Please see [here](https://github.com/baidu-doris/incubator-doris/tags) for all PATCH versions
 
+## Special Statement
+
+The names Apache, Apache Doris, and Doris belong to the Apache Software Foundation.
+
+This warehouse code is NOT the official release version of Doris, but it is fully compatible with the Apache Doris. Please go to [Official Website](doris.apache.org) to download the official version.
+
+# Usage
+
 The current [Official Release Version](https://github.com/apache/incubator-doris/tags) of Apache Doris is:
 
 * 0.9.0
@@ -59,74 +67,4 @@ In some cases, users may not be able to successfully obtain Doris binary files t
 
 ### Download link
 
-* [0.12.21-release (447MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.12.21-release.tar.gz) [Update 2020-08-11]
-* [0.13.9-release (547MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.13.9-release.tar.gz) [Update 2020-10-21]
-* [0.13.11-release (552MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.13.11-release.tar.gz) [Update 2020-11-15]
-
-    * Change Log
-
-        1. New features
-
-            * Support persisting FE or BE configuration parameters modified at runtime. [#4704](https://github.com/apache/incubator-doris/pull/4704)
-            * Support to modify external tables through ALTER TABLE statement. [#4699](https://github.com/apache/incubator-doris/pull/4699)
-            * Support access to PostgreSQL external tables via ODBC protocol. [#4798](https://github.com/apache/incubator-doris/pull/4798)
-            * The BE web page supports generating CPU and Heap profile. [#4632](https://github.com/apache/incubator-doris/pull/4632)
-
-        2. Serious bug fixes
-
-            * Fix the problem that the BE Compaction task may cause BE crash. [#4829](https://github.com/apache/incubator-doris/pull/4829)
-            * Fix the problem that the job is always in the Loading state due to the exception not being caught when the load task is scheduled. [#4796](https://github.com/apache/incubator-doris/pull/4796)
-            * Fix the problem that restarting the Master FE may cause the status of some completed load jobs to become UNKNOWN. [#4869](https://github.com/apache/incubator-doris/pull/4869)
-            * Fix the problem that renaming a table may cause the new table name and the materialized view to have the same name. [#4870](https://github.com/apache/incubator-doris/pull/4870)
-
-* [0.13.12-release (560MB)](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/DORIS-0.13.12-release.tar.gz) [Update On 2020-12-14]
-
-    * 76 Commits added
-    * Change Log
-
-        1. New features
-
-            * Support more column type transformations.
-            * Support a new Join Reorder algorithm.
-
-                Use a more reasonable way to adjust the Join order in SQL to avoid Cross Join as much as possible. This algorithm has significant effects in #17 #25 #29 #37 #82 of TPC-DS.
-
-                This feature is experimental and can be enabled through the session variable `enable_cost_based_join_reorder`. Off by default.
-
-            * Support the calculation of constant expressions in SQL through the BE side.
-
-                Supports sending all constant expressions in SQL to BE for calculation. This function extends the original constant folding function on the FE side. But it may generate more RPC overhead.
-
-                This feature is experimental and can be turned on through the session variable `enable_fold_constant_by_be`. Off by default.
-
-            * Optimized the read efficiency of the Unique Key model table, and increased the efficiency by 20%-40% in some scenarios.
-
-            * The partition column value is forbidden to be NULL.
-
-                It can be disabled through the session variable `allow_partition_column_nullable`. The default is false.
-
-            * Enhanced the connection compatibility of some MySQL ecological tools.
-
-        2. Serious bug fixes
-
-            * Fix the problem that the disk space is full because the junk files are not cleared after the Compaction fails. [#4964](https://github.com/apache/incubator-doris/pull/4964)
-
-## Docker compilation environment mirror download
-
-For some reasons, downloading the image `docker.io/apachedoris/doris-dev:build-env-1.2` via `docker pull` is very slow. You can download the image locally through the following link, and then load the image through the `docker load` command:
-
-[Download docker.io/apachedoris/doris-dev:build-env-1.2](https://palo-cloud-repo-bd.bd.bcebos.com/baidu-doris-release/apachedoris-build-env-1.2 )
-
-`docker load --input apachedoris-build-env-1.2`
-
-You can view the image through `docker images` later.
-
-## Baidu Data Warehouse Palo
-
-Baidu Data Warehouse Palo provides enterprise-level data warehouse hosting services based on Doris. New users can try it free for 3 months.
-
-**Trial, multi-cloud support, privatized deployment**, etc., please go to: [https://cloud.baidu.com/product/palo.html](https://cloud.baidu.com/product/palo.html) For details.
-
-Welcome to follow ApacheDoris' official WeChat account for more use cases and technical articles.
-
-![](https://github.com/baidu-doris/incubator-doris/blob/master/docs/resources/doris-wechat.jpg)
+[Download](http://palo.baidu.com/docs/%E4%B8%8B%E8%BD%BD%E4%B8%93%E5%8C%BA/%E9%A2%84%E7%BC%96%E8%AF%91%E7%89%88%E6%9C%AC%E4%B8%8B%E8%BD%BD)
