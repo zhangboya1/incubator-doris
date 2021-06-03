@@ -12,9 +12,9 @@
 
 ## 特别声明
 
-Apache、Apache Doris 以及 Doris 名称归属于 Apache 软件基金会。
+**Apache、Apache Doris 以及 Doris 名称归属于 Apache 软件基金会。**
 
-本仓库代码非 Apache 官方 Release 版本，但与 Apache 版本完全兼容。官方版本请前往 [官方网站](doris.apache.org) 下载。
+**本仓库代码非 Apache 官方 Release 版本，但与 Apache 版本完全兼容。官方版本请前往 [官方网站](doris.apache.org) 下载。**
 
 ## 使用说明
 
@@ -28,30 +28,30 @@ Apache、Apache Doris 以及 Doris 名称归属于 Apache 软件基金会。
 
 本仓库主要基于 2 位官方版本发布 3 位迭代版本。如：
 
-* DORIS-0.9.22-release
-* DORIS-0.10.23-release
-* DORIS-0.11.44-release
-* DORIS-0.12.21-release
-* DORIS-0.13.12-release
+* 0.9.22-release
+* 0.10.23-release
+* 0.11.44-release
+* 0.12.21-release
+* 0.13.12-release
 
 所有 3 位版本可以安全的从对应的官方 2 位版本升级。3 位版本本身也是兼容的，可以安全升级。举例如下：
 
-* 官方 `0.12.0-rc02` 可以升级至 `DORIS-0.12.21-release`
-* `DORIS-0.11.10-release` 可以升级至 `DORIS-0.11.44-release`
-* `DORIS-0.11.44-release` 可以升级至 `DORIS-0.12.21-release`
+* 官方 `0.12.0-rc02` 可以升级至 `0.12.21-release`
+* `0.11.10-release` 可以升级至 `0.11.44-release`
+* `0.11.44-release` 可以升级至 `0.12.21-release`
 
 建议在升级 2 位版本之前，先升级到对应的最新的 3 位版本后，再升级 2 位版本。举例如下：
 
-1. 当前使用版本为 `DORIS-0.11.10-release`，想升级到 0.12 版本。
-2. 首先升级到 `DORIS-0.11.44-release`，即 0.11 的最新 3 位版本。
-3. 再升级到 `DORIS-0.12.21-release`，即 0.12 的最新 3 位版本。
+1. 当前使用版本为 `0.11.10-release`，想升级到 0.12 版本。
+2. 首先升级到 `0.11.44-release`，即 0.11 的最新 3 位版本。
+3. 再升级到 `0.12.21-release`，即 0.12 的最新 3 位版本。
 
 3 位迭代版本也可以安全的和官方 2 位版本升级。如以下的升级序列是安全的
 
-1. `DORIS-0.11.10-release`  Baidu 库
-2. `DORIS-0.11.44-release`  Baidu 库
-3. `0.12-rc02`  官方库
-4. `DORIS-0.12.21-release`  Baidu 库
+1. `0.11.10-release`  Baidu 库
+2. `0.11.44-release`  Baidu 库
+3. `DORIS-0.12-rc02`  官方库
+4. `0.12.21-release`  Baidu 库
 
 ## Doris 预编译二进制下载
 
