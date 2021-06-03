@@ -10,9 +10,9 @@ Please see [here](https://github.com/baidu-doris/incubator-doris/tags) for all P
 
 ## Special Statement
 
-The names Apache, Apache Doris, and Doris belong to the Apache Software Foundation.
+**The names Apache, Apache Doris, and Doris belong to the Apache Software Foundation.**
 
-This warehouse code is NOT the official release version of Doris, but it is fully compatible with the Apache Doris. Please go to [Official Website](doris.apache.org) to download the official version.
+**This repo is NOT the official release version of Doris, but it is fully compatible with the Apache Doris. Please go to [Official Website](doris.apache.org) to download the official version.**
 
 # Usage
 
@@ -26,30 +26,30 @@ The current [Official Release Version](https://github.com/apache/incubator-doris
 
 This warehouse mainly releases PATCH version based on the official MAJOR and MINOR version. Such as:
 
-* DORIS-0.9.22-release
-* DORIS-0.10.23-release
-* DORIS-0.11.44-release
-* DORIS-0.12.21-release
-* DORIS-0.13.12-release
+* 0.9.22-release
+* 0.10.23-release
+* 0.11.44-release
+* 0.12.21-release
+* 0.13.12-release
 
 All PATCH versions can be safely upgraded from the corresponding official MAJOR and MINOR version. The PATCH versions themselves are also compatible and can be upgraded safely. Examples are as follows:
 
-* Official `0.12.0-rc02` can be upgraded to `DORIS-0.12.21-release`
-* `DORIS-0.11.10-release` can be upgraded to `DORIS-0.11.44-release`
-* `DORIS-0.11.44-release` can be upgraded to `DORIS-0.12.21-release`
+* Official `0.12.0-rc02` can be upgraded to `0.12.21-release`
+* `0.11.10-release` can be upgraded to `0.11.44-release`
+* `0.11.44-release` can be upgraded to `0.12.21-release`
 
 It is recommended to upgrade to the latest PATCH version before upgrading to the next MAJOR and MINOR version. Examples are as follows:
 
-1. The currently used version is `DORIS-0.11.10-release` and I want to upgrade to version 0.12.
-2. First upgrade to `DORIS-0.11.44-release`, which is the latest PATCH version of 0.11.
-3. Upgrade to `DORIS-0.12.21-release`, which is the latest PATCH version of 0.12.
+1. The currently used version is `0.11.10-release` and I want to upgrade to version 0.12.
+2. First upgrade to `0.11.44-release`, which is the latest PATCH version of 0.11.
+3. Upgrade to `0.12.21-release`, which is the latest PATCH version of 0.12.
 
 The PATCH version can also be upgraded safely from or to the official release version. The following upgrade sequence is safe
 
-1. `DORIS-0.11.10-release` Baidu repo
-2. `DORIS-0.11.44-release` Baidu repo
-3. `0.12-rc02` Official repo
-4. `DORIS-0.12.21-release` Baidu repo
+1. `0.11.10-release` Baidu repo
+2. `0.11.44-release` Baidu repo
+3. `DORIS-0.12-rc02` Official repo
+4. `0.12.21-release` Baidu repo
 
 ## Doris pre-compiled binary download
 
