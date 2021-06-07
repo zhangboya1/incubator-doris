@@ -151,7 +151,7 @@ under the License.
             1) Aggregate model If you modify the value column, you need to specify agg_type
             2) Non-aggregate type If you modify the key column, you need to specify the KEY keyword.
             3) Only the type of the column can be modified. The other attributes of the column remain as they are (ie other attributes need to be explicitly written in the statement according to the original attribute, see example 8)
-            4) The partition column cannot be modified
+            4) The partition column and the distribution column cannot be modified
             5) The following types of conversions are currently supported (accuracy loss is guaranteed by the user)
 	        TINYINT/SMALLINT/INT/BIGINT/LARGEINT/FLOAT/DOUBLE convert to a wider range of numeric types
                 TINTINT/SMALLINT/INT/BIGINT/LARGEINT/FLOAT/DOUBLE/DECIMAL is converted to VARCHAR
